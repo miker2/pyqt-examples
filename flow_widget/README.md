@@ -1,0 +1,1 @@
+This examples was ported from the [Flow Layout Example|https://doc.qt.io/qt-5/qtwidgets-layouts-flowlayout-example.html] from the Qt documentation.

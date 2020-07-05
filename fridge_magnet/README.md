@@ -1,0 +1,1 @@
+This example was initially ported from the [Fridge Magnets Example|https://doc.qt.io/qt-5/qtwidgets-draganddrop-fridgemagnets-example.html] from the Qt documentation.
