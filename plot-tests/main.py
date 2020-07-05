@@ -28,9 +28,9 @@ class PlotTool(QMainWindow):
 
         layout.addWidget(MyPlotWidget())
 
-        # Set up two "files"
-        data_file_widget.openFile("file1")
-        data_file_widget.openFile("file2")
+        # Set up a few files:
+        for idx in range(3):
+            data_file_widget.openFile(f"test_data{idx+1}.csv")
 
         
 class MyPlotWidget(QWidget):
@@ -53,8 +53,6 @@ class MyPlotWidget(QWidget):
 
         self.setAcceptDrops(True)
         self.pw.setAcceptDrops(True)
-
-        self.pw.getPlotItem().addLegend()
 
         self.cidx = 0
 

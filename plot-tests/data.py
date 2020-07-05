@@ -35,11 +35,11 @@ class DataItem(object):
 
 
 class DataModel(QAbstractListModel):
-    def __init__(self, parent=None):
+    def __init__(self, filename, parent=None):
         super().__init__(parent)
 
         # Produce random data:
-        data = pd.read_csv('test_data.csv')
+        data = pd.read_csv(filename)
         self._data = []
         for var in sorted(data.columns):
             self._data.append(DataItem(var, data[var]))
@@ -94,7 +94,7 @@ class VarListWidget(QListView):
     def __init__(self, parent, filename):
         super().__init__(parent)
 
-        model = DataModel()
+        model = DataModel(filename)
 
         self.setModel(model)
 
