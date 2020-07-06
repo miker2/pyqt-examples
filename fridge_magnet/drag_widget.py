@@ -21,7 +21,9 @@ class DragWidget(QWidget):
                 word_label = DragLabel(word, self)
                 word_label.move(x, y)
                 word_label.show()
-                word_label.setAttribute(Qt.WA_DeleteOnClose)
+                # Apparently `WA_DeleteOnClose` shouldn't be used with python.
+                # See https://stefanoborini.com/pyqt-gotchas/
+                # word_label.setAttribute(Qt.WA_DeleteOnClose)
                 x += word_label.width() + 2
                 if x >= 245:
                     x = 5
@@ -76,7 +78,9 @@ class DragWidget(QWidget):
             newLabel = DragLabel(text, self)
             newLabel.move(event.pos() - offset)
             newLabel.show()
-            newLabel.setAttribute(Qt.WA_DeleteOnClose)
+            # Apparently `WA_DeleteOnClose` shouldn't be used with python.
+            # See https://stefanoborini.com/pyqt-gotchas/
+            # newLabel.setAttribute(Qt.WA_DeleteOnClose)
 
             if event.source() == self:
                 event.setDropAction(Qt.MoveAction)
@@ -92,7 +96,9 @@ class DragWidget(QWidget):
                 newLabel = DragLabel(text, self)
                 newLabel.move(pos)
                 newLabel.show()
-                newLabel.setAttribute(Qt.WA_DeleteOnClose)
+                # Apparently `WA_DeleteOnClose` shouldn't be used with python.
+                # See https://stefanoborini.com/pyqt-gotchas/
+                # newLabel.setAttribute(Qt.WA_DeleteOnClose)
 
                 pos += QPoint(newLabel.width(), 0)
 
