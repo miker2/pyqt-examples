@@ -28,9 +28,7 @@ class PlotTool(QMainWindow):
 
         layout.addWidget(MyPlotWidget())
 
-        # Set up a few files:
-        for idx in range(3):
-            data_file_widget.openFile(f"test_data{idx+1}.csv")
+        data_file_widget.openFile("test_data1.csv")
 
         
 class MyPlotWidget(QWidget):
