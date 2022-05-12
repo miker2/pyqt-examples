@@ -5,6 +5,7 @@ from PyQt5.QtCore import QSize, QDir
 
 import pyqtgraph as pg
 import json
+import pathlib
 from visualizer_3d_widget import VisualizerWidget
 
 
@@ -37,11 +38,16 @@ class Viz3d(QMainWindow):
         filename, _ = QFileDialog.getOpenFileName(self, "Open file", QDir.homePath())
 
         if filename != '':
-            with open(filename, mode="r") as f:
-                data = json.load(f)
-                for e in data:
-                    #print(e['board_pose'])
-                    self.viz_widget.addAxis(**e['board_pose'])
+            ext = pathlib.Path(filename).suffix
+            if ext.lower() == '.json':
+                with open(filename, mode="r") as f:
+                    data = json.load(f)
+                    for e in data:
+                        #print(e['board_pose'])
+                        self.viz_widget.addAxis(**e['board_pose'])
+            elif ext.lower() == '.stl':
+                print(f"Got stl file: {filename}")
+                self.viz_widget.drawMesh(filename)
 
     def add_axis(self):
         text, res = QInputDialog.getMultiLineText(self, "Enter axis info", "Axis info",

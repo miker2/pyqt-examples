@@ -1,12 +1,14 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
+import pyqtgraph as pg
 from pyqtgraph.opengl import GLViewWidget
 import pyqtgraph.opengl as gl
 
 import os
 import numpy as np
 from scipy.spatial.transform import Rotation
+import stl
 
 _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
@@ -24,6 +26,9 @@ class VisualizerWidget(QWidget):
 
     def addAxis(self, *args, **kwargs):
         self._3d_viz.addAxis(*args, **kwargs)
+
+    def drawMesh(self, stl_file):
+        self._3d_viz.drawMesh(stl_file)
 
 # Shape helpers:
 def _createArrow(color=(1., 1., 1., 1.), width=2, pos=[0, 0, 0], vec=[0, 0, 0]):
@@ -58,6 +63,8 @@ class Visualizer3DWidget(GLViewWidget):
 
         self.setCameraPosition(distance=1.0)
 
+        self._colors = pg.colormap.get('CET-C2s').getLookupTable(nPts=10, mode=pg.ColorMap.FLOAT)
+        self._color_idx = 0
         # First, we need to draw the ground plane:
         grid = gl.GLGridItem()
         # grid.scale(1, 1, 1)
@@ -66,13 +73,25 @@ class Visualizer3DWidget(GLViewWidget):
         self.addItem(grid)
 
         self._axes = []
-        
+
         self.base_triad = self.addAxis()
 
         self.addAxis(translation=[0,0,0.1])
         self.addAxis(translation=[0.3, 0, 0.2], quaternion=[0.707, 0, 0, 0.707])
 
+    def drawMesh(self, stl_file):
+        mesh = stl.mesh.Mesh.from_file(stl_file)
+        # Recenter the mesh for now.
+        _, offset, _ = mesh.get_mass_properties()
+        mesh.translate(-offset)
+        mesh_data = gl.MeshData(vertexes=mesh.vectors)
+        # Add some color
+        color = self._colors[self._color_idx]
+        self._color_idx = (self._color_idx + 1) % len(self._colors)
+        mesh_item = gl.GLMeshItem(meshdata=mesh_data, color=np.hstack((color,[0.7])),
+                                  edgeColor=[0.7,0.7,0.7,1.0], drawEdges=True)
 
+        self.addItem(mesh_item)
 
     def addAxis(self, *args, **kwargs):
         size = kwargs.get('size', 0.1)
@@ -105,7 +124,7 @@ class Visualizer3DWidget(GLViewWidget):
             print(f"Invalid rotation of type '{rot_type}' with value: '{rot_val}'")
             return None
 
-        new_triad = gl.GLAxisItem(glOptions='opaque')            
+        new_triad = gl.GLAxisItem(glOptions='opaque')
         new_triad.setSize(x=size, y=size, z=size)
 
         new_triad.resetTransform()
@@ -121,12 +140,12 @@ class Visualizer3DWidget(GLViewWidget):
 
         new_triad.rotate(ang, *axis)
         new_triad.translate(*position)
-        
+
         self._axes.append(new_triad)
         self.addItem(new_triad)
 
         return new_triad
-        
+
     def updateAxisFrame(self, axis):
         # Get base to world transform:
         wRb = Rotation.from_quat(self._wRb)
@@ -141,4 +160,3 @@ class Visualizer3DWidget(GLViewWidget):
             axis = np.array([0, 0, 1])
         self.base_triad.rotate(ang, *axis)
         self.base_triad.translate(*self._base_pos)
-
