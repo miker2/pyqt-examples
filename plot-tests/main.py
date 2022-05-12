@@ -45,6 +45,7 @@ class MyPlotWidget(QWidget):
 
         self.pw = pg.PlotWidget()
         vBox.addWidget(self.pw)
+        self.pw.getPlotItem().setDownsampling(ds=100,auto=True)
 
         self.pw.setBackground('w')
         self.pw.showGrid(x=True, y=True)
@@ -67,19 +68,22 @@ class MyPlotWidget(QWidget):
 
         name = f"{e.source().filename} : {selected.var_name}"
         
-        print(type(selected.data))
-        item = self.pw.getPlotItem().plot(x=selected.time.to_numpy(),
-                                          y=selected.data.to_numpy(),
-                                          pen=pg.mkPen(color=MyPlotWidget.COLORS[self.cidx],
-                                                       width=2),
-                                          name=name)
-        label = self.makeLabel(item)
+        print(f"{type(selected.data)} - {name}")
+        curve = pg.PlotCurveItem(x=selected.time.to_numpy(),
+                                 y=selected.data.to_numpy(),
+                                 pen=pg.mkPen(color=MyPlotWidget.COLORS[self.cidx],
+                                              width=2),
+                                 name=name)
+        item = self.pw.getPlotItem().addItem(curve)
+        label = self.makeLabel(curve)
         self._labels.insertWidget(self._labels.count()-1, label)
         e.source().onClose.connect(lambda : self.removeItem(item, label))
         
         self.pw.autoRange()
         self.cidx = (self.cidx + 1) % len(MyPlotWidget.COLORS)
         e.accept()
+
+        print(f"Done plotting {selected.var_name}")
 
     def makeLabel(self, plot_item):
         label = QLabel(plot_item.name())
