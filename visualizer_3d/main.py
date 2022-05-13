@@ -48,6 +48,11 @@ class Viz3d(QMainWindow):
             elif ext.lower() == '.stl' or ext.lower() == '.obj':
                 print(f"Got stl or obj file: {filename}")
                 self.viz_widget.drawMesh(filename)
+            elif ext.lower() == '.urdf':
+                print(f"Requested file: {filename} is a URDF file")
+                self.viz_widget.drawURDF(filename)
+            else:
+                print(f"'{filename}' - Unknown file type!")
 
     def add_axis(self):
         text, res = QInputDialog.getMultiLineText(self, "Enter axis info", "Axis info",

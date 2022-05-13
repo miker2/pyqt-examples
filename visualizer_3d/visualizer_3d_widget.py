@@ -10,6 +10,9 @@ import numpy as np
 import pywavefront
 from scipy.spatial.transform import Rotation
 import stl
+from urdfpy import URDF
+
+from robot_model import RobotModel
 
 _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
@@ -30,6 +33,10 @@ class VisualizerWidget(QWidget):
 
     def drawMesh(self, stl_file):
         self._3d_viz.drawMesh(stl_file)
+
+    def drawURDF(self, urdf_file):
+        print("In VisualizerWidget.drawURDF")
+        self._3d_viz.drawURDF(urdf_file)
 
 # Shape helpers:
 def _createArrow(color=(1., 1., 1., 1.), width=2, pos=[0, 0, 0], vec=[0, 0, 0]):
@@ -102,6 +109,11 @@ class Visualizer3DWidget(GLViewWidget):
                                   edgeColor=[0.7,0.7,0.7,1.0], drawEdges=True)
 
         self.addItem(mesh_item)
+
+    def drawURDF(self, urdf_file):
+        print("InVisualizer3dWidget.drawURDF")
+        robot = RobotModel(urdf_file)
+        self.addItem(robot)
 
     def addAxis(self, *args, **kwargs):
         size = kwargs.get('size', 0.1)
