@@ -45,8 +45,8 @@ class Viz3d(QMainWindow):
                     for e in data:
                         #print(e['board_pose'])
                         self.viz_widget.addAxis(**e['board_pose'])
-            elif ext.lower() == '.stl':
-                print(f"Got stl file: {filename}")
+            elif ext.lower() == '.stl' or ext.lower() == '.obj':
+                print(f"Got stl or obj file: {filename}")
                 self.viz_widget.drawMesh(filename)
 
     def add_axis(self):

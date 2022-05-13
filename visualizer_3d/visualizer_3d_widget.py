@@ -7,6 +7,7 @@ import pyqtgraph.opengl as gl
 
 import os
 import numpy as np
+import pywavefront
 from scipy.spatial.transform import Rotation
 import stl
 
@@ -76,15 +77,24 @@ class Visualizer3DWidget(GLViewWidget):
 
         self.base_triad = self.addAxis()
 
-        self.addAxis(translation=[0,0,0.1])
-        self.addAxis(translation=[0.3, 0, 0.2], quaternion=[0.707, 0, 0, 0.707])
-
     def drawMesh(self, stl_file):
-        mesh = stl.mesh.Mesh.from_file(stl_file)
-        # Recenter the mesh for now.
-        _, offset, _ = mesh.get_mass_properties()
-        mesh.translate(-offset)
-        mesh_data = gl.MeshData(vertexes=mesh.vectors)
+        _, ext = os.path.splitext(stl_file)
+        if ext.lower() == '.stl':
+            mesh = stl.mesh.Mesh.from_file(stl_file)
+            # Recenter the mesh for now.
+            _, offset, _ = mesh.get_mass_properties()
+            mesh.translate(-offset)
+            mesh_data = gl.MeshData(vertexes=mesh.vectors)
+        elif ext.lower() == '.obj':
+            mesh = pywavefront.Wavefront(stl_file, collect_faces=True)
+            vertices = np.array(mesh.vertices)
+            faces = np.array(mesh.mesh_list[0].faces)
+            #mesh_data = gl.MeshData(vertexes=vertices[faces])
+            mesh_data = gl.MeshData(vertexes=vertices, faces=faces)
+        else:
+            print(f"Unsupported file type '{ext}' for {stl_file}")
+            return
+
         # Add some color
         color = self._colors[self._color_idx]
         self._color_idx = (self._color_idx + 1) % len(self._colors)
