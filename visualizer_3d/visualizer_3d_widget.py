@@ -43,6 +43,9 @@ class VisualizerWidget(QWidget):
     def getRobot(self):
         return self._3d_viz.robot
 
+    def update(self):
+        self._3d_viz.update()
+
 # Shape helpers:
 def _createArrow(color=(1., 1., 1., 1.), width=2, pos=[0, 0, 0], vec=[0, 0, 0]):
     # Not much of an arrow at the moment, but it will have to do for now.

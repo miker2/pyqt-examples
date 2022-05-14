@@ -3,6 +3,7 @@ from PyQt5.QtGui import QMatrix4x4
 from urdfpy import URDF
 import pyqtgraph.opengl as gl
 
+import math
 import os
 
 class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
@@ -35,19 +36,25 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
 
     def setJointQ(self, q):
         print(f"Setting {self.name} to {q}")
+        self.setTransform(self._static_transform)
         clamp = lambda x: max(self._limit.lower, min(x, self._limit.upper))
         j_transform = QMatrix4x4()
         if self._type == 'prismatic':
             j_transform.translate(*(clamp(q) * self._axis))
         elif self._type == 'revolute':
-            j_transform.rotate(clamp(q), *self._axis)
+            j_transform.rotate(clamp(q)*180/math.pi, *self._axis)
         elif self._type == 'continuous':
-            j_transform.rotate(q, *self._axis)
+            j_transform.rotate(q*180/math.pi, *self._axis)
         else:
             print(f"Unsupported joint type - '{self._type}'")
 
-        self.setTransform(self._static_transform * j_transform)
-        self.update()
+        self.applyTransform(j_transform, local=True)
+        #print(self.transform())
+        #self.update()
+        #for child in self.childItems():
+        #    child.update()
+        #    child.transform()
+
 
 class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
     def __init__(self, urdf_file):
@@ -88,4 +95,3 @@ class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
 
         for i, q in enumerate(qs):
             self.links[i+1].setJointQ(q)
-
