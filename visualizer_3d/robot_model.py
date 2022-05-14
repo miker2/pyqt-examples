@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QSlider
 
 from urdfpy import URDF
 import pyqtgraph.opengl as gl
+import numpy as np
 
 import math
 import os
@@ -22,11 +23,16 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
         self.visuals = []
         for visual in link_info.visuals:
             color = [0.7, 0.7, 0.7, 1.0]
+            opt='opaque'
             if visual.material.color is not None:
                 color = visual.material.color
+                if color[-1] < 1:
+                    opt='translucent'
+            edge_color = 0.8 * np.array(color)  # Make the edge colors slightly darker than the face colors
             for mesh in visual.geometry.meshes:
                 mesh_data = gl.MeshData(vertexes=mesh.vertices, faces=mesh.faces)
-                mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color)
+                mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color, edgeColor=edge_color, \
+                                     glOptions='translucent') #, shader='shaded')
                 mesh.setTransform(visual.origin)
                 mesh.setParentItem(self)
                 self.visuals.append(mesh)
