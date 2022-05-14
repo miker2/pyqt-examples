@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPu
     QFileDialog, QInputDialog, QComboBox, QHBoxLayout, QSlider
 from PyQt5.QtCore import QSize, QDir, Qt
 
+import argparse
 import pyqtgraph as pg
 import json
 import pathlib
@@ -26,7 +27,7 @@ class Viz3d(QMainWindow):
         layout.addWidget(self.viz_widget)
 
         open_file_btn = QPushButton("Open file")
-        open_file_btn.clicked.connect(self.read_file)
+        open_file_btn.clicked.connect(self.open_file)
         layout.addWidget(open_file_btn)
 
         add_axis_button = QPushButton("Add axis")
@@ -46,25 +47,28 @@ class Viz3d(QMainWindow):
         layout.addLayout(hlayout)
 
 
-    def read_file(self):
+    def open_file(self):
         filename, _ = QFileDialog.getOpenFileName(self, "Open file", QDir.homePath())
 
         if filename != '':
-            ext = pathlib.Path(filename).suffix
-            if ext.lower() == '.json':
-                with open(filename, mode="r") as f:
-                    data = json.load(f)
-                    for e in data:
-                        #print(e['board_pose'])
-                        self.viz_widget.addAxis(**e['board_pose'])
-            elif ext.lower() == '.stl' or ext.lower() == '.obj':
-                print(f"Got stl or obj file: {filename}")
-                self.viz_widget.drawMesh(filename)
-            elif ext.lower() == '.urdf':
-                print(f"Requested file: {filename} is a URDF file")
-                self.viz_widget.drawURDF(filename)
-            else:
-                print(f"'{filename}' - Unknown file type!")
+            self.process_file(filename)
+
+    def process_file(self, filename):
+        ext = pathlib.Path(filename).suffix
+        if ext.lower() == '.json':
+            with open(filename, mode="r") as f:
+                data = json.load(f)
+                for e in data:
+                    #print(e['board_pose'])
+                    self.viz_widget.addAxis(**e['board_pose'])
+        elif ext.lower() == '.stl' or ext.lower() == '.obj':
+            print(f"Got stl or obj file: {filename}")
+            self.viz_widget.drawMesh(filename)
+        elif ext.lower() == '.urdf':
+            print(f"Requested file: {filename} is a URDF file")
+            self.viz_widget.drawURDF(filename)
+        else:
+            print(f"'{filename}' - Unknown file type!")
 
     def add_axis(self):
         text, res = QInputDialog.getMultiLineText(self, "Enter axis info", "Axis info",
@@ -92,9 +96,16 @@ class Viz3d(QMainWindow):
         self.viz_widget.update()
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f','--file', action='append', default=[])
+    args = parser.parse_args()
+
     MainEventThread = QApplication([])
 
     MainApplication = Viz3d()
+    for f in args.file:
+        MainApplication.process_file(f)
     MainApplication.show()
 
     MainEventThread.exec()
