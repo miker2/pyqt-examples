@@ -18,7 +18,6 @@ _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
 
 class VisualizerWidget(QWidget):
-    has_robot = pyqtSignal()
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
 
@@ -38,10 +37,8 @@ class VisualizerWidget(QWidget):
     def drawURDF(self, urdf_file):
         print("In VisualizerWidget.drawURDF")
         self._3d_viz.drawURDF(urdf_file)
-        self.has_robot.emit()
-
-    def getRobot(self):
-        return self._3d_viz.robot
+        controls = self._3d_viz.robot._layout
+        self.layout().addLayout(controls)
 
     def update(self):
         self._3d_viz.update()

@@ -34,19 +34,6 @@ class Viz3d(QMainWindow):
         add_axis_button.clicked.connect(self.add_axis)
         layout.addWidget(add_axis_button)
 
-        hlayout = QHBoxLayout()
-
-        self.joints = QComboBox()
-        self.viz_widget.has_robot.connect(self.populate_joints)
-        slider = QSlider(Qt.Horizontal)
-        slider.setMinimum(-314)
-        slider.setMaximum(314)
-        slider.valueChanged.connect(self.setJointQ)
-        hlayout.addWidget(self.joints)
-        hlayout.addWidget(slider)
-        layout.addLayout(hlayout)
-
-
     def open_file(self):
         filename, _ = QFileDialog.getOpenFileName(self, "Open file", QDir.homePath())
 
@@ -85,15 +72,6 @@ class Viz3d(QMainWindow):
                 self.viz_widget.addAxis(**data)
             except JSONDecodeError:
                 print(f"Entered text is invalid json:\n{text}")
-
-    def populate_joints(self):
-        for j in self.viz_widget.getRobot().joints.keys():
-            self.joints.addItem(j)
-
-    def setJointQ(self, value):
-        angle = value / 100.
-        self.viz_widget.getRobot().setJointQ(self.joints.currentText(), angle)
-        self.viz_widget.update()
 
 if __name__ == "__main__":
 
