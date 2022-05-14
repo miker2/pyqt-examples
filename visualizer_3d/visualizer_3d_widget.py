@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 import pyqtgraph as pg
@@ -18,6 +18,7 @@ _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
 
 class VisualizerWidget(QWidget):
+    has_robot = pyqtSignal()
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
 
@@ -37,6 +38,10 @@ class VisualizerWidget(QWidget):
     def drawURDF(self, urdf_file):
         print("In VisualizerWidget.drawURDF")
         self._3d_viz.drawURDF(urdf_file)
+        self.has_robot.emit()
+
+    def getRobot(self):
+        return self._3d_viz.robot
 
 # Shape helpers:
 def _createArrow(color=(1., 1., 1., 1.), width=2, pos=[0, 0, 0], vec=[0, 0, 0]):
@@ -84,6 +89,8 @@ class Visualizer3DWidget(GLViewWidget):
 
         self.base_triad = self.addAxis()
 
+        self.robot = None
+
     def drawMesh(self, stl_file):
         _, ext = os.path.splitext(stl_file)
         if ext.lower() == '.stl':
@@ -112,8 +119,8 @@ class Visualizer3DWidget(GLViewWidget):
 
     def drawURDF(self, urdf_file):
         print("InVisualizer3dWidget.drawURDF")
-        robot = RobotModel(urdf_file)
-        self.addItem(robot)
+        self.robot = RobotModel(urdf_file)
+        self.addItem(self.robot)
 
     def addAxis(self, *args, **kwargs):
         size = kwargs.get('size', 0.1)
