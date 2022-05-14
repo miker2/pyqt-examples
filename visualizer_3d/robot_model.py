@@ -18,9 +18,12 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
 
         self.visuals = []
         for visual in link_info.visuals:
+            color = [0.7, 0.7, 0.7, 1.0]
+            if visual.material.color is not None:
+                color = visual.material.color
             for mesh in visual.geometry.meshes:
                 mesh_data = gl.MeshData(vertexes=mesh.vertices, faces=mesh.faces)
-                mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True)
+                mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color)
                 mesh.setTransform(visual.origin)
                 mesh.setParentItem(self)
                 self.visuals.append(mesh)
