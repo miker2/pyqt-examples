@@ -36,6 +36,8 @@ class VisualizerWidget(QWidget):
         self._obj_list.model().itemChanged.connect(self.handleCheckStateChange)
         main_layout.addWidget(self._obj_list)
 
+        self.drawFrictionCone()
+
     def addAxis(self, *args, **kwargs):
         triad = self._3d_viz.addAxis(*args, **kwargs)
         self.addToObjList(f"Axis {self._axis_cnt+1}", triad)
@@ -52,10 +54,21 @@ class VisualizerWidget(QWidget):
         controls = robot._layout # Get robot joint control layout and add to UI
         self.layout().addLayout(controls)
 
-    def addToObjList(self, name, item):
+    def drawFrictionCone(self):
+        cone = FrictionCone(sides=6)
+        self._3d_viz.addItem(cone)
+        cone.setFootPosition([0.3, 0.1, 0])
+        cone.setNormal([0, 0.3, 0.807])
+        cone.setMu(0.4)
+        #cone.update()
+        cone.show()
+        self.addToObjList("cone", cone, False)
+
+
+    def addToObjList(self, name, item, checked=True):
         self._obj_list.addItem(name, item)
         # Start off with all items checked
-        self._obj_list.setItemChecked(self._obj_list.count() - 1, True)
+        self._obj_list.setItemChecked(self._obj_list.count() - 1, checked)
 
     def handleCheckStateChange(self, item):
         #print(f"{item.text()}: check state: {item.checkState()}")
