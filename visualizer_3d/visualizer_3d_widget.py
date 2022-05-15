@@ -13,10 +13,12 @@ import stl
 from urdfpy import URDF
 
 from checkable_combo_box import CheckableComboBox
+from friction_cone import FrictionCone
 from robot_model import RobotModel
 
 _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
+
 
 class VisualizerWidget(QWidget):
     def __init__(self, parent=None):
@@ -184,14 +186,12 @@ class Visualizer3DWidget(GLViewWidget):
 
         # GLAxisItem expects an axis/angle representation
         ax_ang = R.as_rotvec()
-        ang = np.linalg.norm(ax_ang) * 180 / np.pi
-        try:
-            axis = ax_ang / np.linalg.norm(ax_ang)
-        except Exception as ex:
-            print(ex)
-            axis = np.array([0, 0, 1])
+        ang = np.linalg.norm(ax_ang)
+        axis = np.array([0, 0, 1])
+        if ang != 0:
+            axis = ax_ang / ang
 
-        new_triad.rotate(ang, *axis)
+        new_triad.rotate(ang * 180 / np.pi, *axis)
         new_triad.translate(*position)
 
         self._axes.append(new_triad)
