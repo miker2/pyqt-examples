@@ -12,6 +12,7 @@ from scipy.spatial.transform import Rotation
 import stl
 from urdfpy import URDF
 
+from checkable_combo_box import CheckableComboBox
 from robot_model import RobotModel
 
 _DIR_ = ("x", "y", "z")
@@ -28,17 +29,39 @@ class VisualizerWidget(QWidget):
 
         self.setLayout(main_layout)
 
+        self._axis_cnt = 0
+        self._obj_list = CheckableComboBox()
+        self._obj_list.model().itemChanged.connect(self.handleCheckStateChange)
+        main_layout.addWidget(self._obj_list)
+
     def addAxis(self, *args, **kwargs):
-        self._3d_viz.addAxis(*args, **kwargs)
+        triad = self._3d_viz.addAxis(*args, **kwargs)
+        self.addToObjList(f"Axis {self._axis_cnt+1}", triad)
+        self._axis_cnt += 1
 
     def drawMesh(self, stl_file):
-        self._3d_viz.drawMesh(stl_file)
+        mesh = self._3d_viz.drawMesh(stl_file)
+        self.addToObjList(os.path.basename(stl_file), mesh)
 
     def drawURDF(self, urdf_file):
         print("In VisualizerWidget.drawURDF")
-        self._3d_viz.drawURDF(urdf_file)
-        controls = self._3d_viz.robot._layout
+        robot = self._3d_viz.drawURDF(urdf_file)
+        self.addToObjList(os.path.basename(urdf_file), robot)
+        controls = robot._layout # Get robot joint control layout and add to UI
         self.layout().addLayout(controls)
+
+    def addToObjList(self, name, item):
+        self._obj_list.addItem(name, item)
+        # Start off with all items checked
+        self._obj_list.setItemChecked(self._obj_list.count() - 1, True)
+
+    def handleCheckStateChange(self, item):
+        #print(f"{item.text()}: check state: {item.checkState()}")
+        #print(f"data: {item.data(Qt.UserRole)}")
+        if item.checkState() == Qt.Unchecked:
+            item.data(Qt.UserRole).hide()
+        elif item.checkState() == Qt.Checked:
+            item.data(Qt.UserRole).show()
 
     def update(self):
         self._3d_viz.update()
@@ -89,8 +112,6 @@ class Visualizer3DWidget(GLViewWidget):
 
         self.base_triad = self.addAxis()
 
-        self.robot = None
-
     def drawMesh(self, stl_file):
         _, ext = os.path.splitext(stl_file)
         if ext.lower() == '.stl':
@@ -116,11 +137,14 @@ class Visualizer3DWidget(GLViewWidget):
                                   edgeColor=[0.7,0.7,0.7,1.0], drawEdges=True)
 
         self.addItem(mesh_item)
+        return mesh_item
 
     def drawURDF(self, urdf_file):
         print("InVisualizer3dWidget.drawURDF")
-        self.robot = RobotModel(urdf_file)
-        self.addItem(self.robot)
+        robot = RobotModel(urdf_file)
+        self.addItem(robot)
+
+        return robot
 
     def addAxis(self, *args, **kwargs):
         size = kwargs.get('size', 0.1)
