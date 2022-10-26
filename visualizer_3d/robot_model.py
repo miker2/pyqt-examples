@@ -9,6 +9,16 @@ import numpy as np
 import math
 import os
 
+def _createSphere(radius=0.05, color=(1., 0, 0, 1.), draw_faces=True, draw_edges=False):
+    sphere = gl.MeshData.sphere(rows=10, cols=10, radius=radius)
+    mesh = gl.GLMeshItem(meshdata=sphere, smooth=True,
+                         drawFaces=draw_faces, color=color,
+                         drawEdges=draw_edges, edgeColor=color)
+    return mesh
+
+
+__LEAD_DENSITY__=11340  # kg / m^3
+
 class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
     def __init__(self, link_info):
         gl.GLGraphicsItem.GLGraphicsItem.__init__(self)
@@ -24,7 +34,7 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
         for visual in link_info.visuals:
             color = [0.7, 0.7, 0.7, 1.0]
             opt='opaque'
-            if visual.material.color is not None:
+            if visual.material is not None and visual.material.color is not None:
                 color = visual.material.color
                 if color[-1] < 1:
                     opt='translucent'
@@ -36,6 +46,15 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
                 mesh.setTransform(visual.origin)
                 mesh.setParentItem(self)
                 self.visuals.append(mesh)
+
+        # Add a sphere representing the mass of the link (at the CoM location)
+        # The sphere radius is determined using a representative sphere with the density of lead
+        lead_volume = link_info.inertial.mass / __LEAD_DENSITY__
+        lead_radius = (lead_volume * 3 / 4 / math.pi) ** (1/3)
+        self.com = _createSphere(radius=lead_radius, color=(0., 0., 1., 0.9))
+        self.com.setParentItem(self)
+        self.com.setTransform(link_info.inertial.origin)
+        self.inertia = []
 
     def setParentJoint(self, joint):
         #print(f"Type: {joint.joint_type}, axis: {joint.axis}\norigin: {joint.origin}")
@@ -70,6 +89,12 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
             print(f"Unsupported joint type - '{self._type}'")
 
         self.applyTransform(j_transform, local=True)
+
+    def hideCoM(self):
+        self.com.hide()
+
+    def showCoM(self):
+        self.com.show()
 
 
 class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
@@ -148,3 +173,23 @@ class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
         jnt_name = self._joint_selector.currentText()
         self.setJointQ(jnt_name, angle)
         self.update()
+
+    def hideCoM(self):
+        for name, link in self.links.items():
+            link.hideCoM()
+        self.update()
+
+    def showCoM(self):
+        for name, link in self.links.items():
+            link.showCoM()
+        self.update()
+
+class RobotCoMProxy:
+    def __init__(self, robot):
+        self.robot = robot
+
+    def show(self):
+        self.robot.showCoM()
+
+    def hide(self):
+        self.robot.hideCoM()

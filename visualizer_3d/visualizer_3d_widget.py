@@ -14,7 +14,7 @@ from urdfpy import URDF
 
 from checkable_combo_box import CheckableComboBox
 from friction_cone import FrictionCone
-from robot_model import RobotModel
+from robot_model import RobotModel, RobotCoMProxy
 
 _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
@@ -53,6 +53,7 @@ class VisualizerWidget(QWidget):
         self.addToObjList(os.path.basename(urdf_file), robot)
         controls = robot._layout # Get robot joint control layout and add to UI
         self.layout().addLayout(controls)
+        self.addToObjList("robot com", RobotCoMProxy(robot))
 
     def drawFrictionCone(self):
         cone = FrictionCone(sides=6)
@@ -91,13 +92,6 @@ def _createArrow(color=(1., 1., 1., 1.), width=2, pos=[0, 0, 0], vec=[0, 0, 0]):
     data[1,:] = vec
     arrow = gl.GLLinePlotItem(pos=data, color=color, width=width, glOptions='opaque')
     return arrow
-
-def _createSphere(radius=0.05, color=(1., 0, 0, 1.), draw_faces=True, draw_edges=False):
-    sphere = gl.MeshData.sphere(rows=10, cols=10, radius=radius)
-    mesh = gl.GLMeshItem(meshdata=sphere, smooth=True,
-                         drawFaces=draw_faces, color=color,
-                         drawEdges=draw_edges, edgeColor=color)
-    return mesh
 
 
 class Visualizer3DWidget(GLViewWidget):
