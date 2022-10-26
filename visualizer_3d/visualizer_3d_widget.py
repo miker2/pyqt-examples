@@ -14,7 +14,7 @@ from urdfpy import URDF
 
 from checkable_combo_box import CheckableComboBox
 from friction_cone import FrictionCone
-from robot_model import RobotModel, RobotCoMProxy
+from robot_model import RobotModel, RobotCoMProxy, RobotInertiaProxy
 
 _DIR_ = ("x", "y", "z")
 _QUAT_ = ("qx", "qy", "qz", "qw")
@@ -54,6 +54,7 @@ class VisualizerWidget(QWidget):
         controls = robot._layout # Get robot joint control layout and add to UI
         self.layout().addLayout(controls)
         self.addToObjList("robot com", RobotCoMProxy(robot))
+        self.addToObjList("robot inertia", RobotInertiaProxy(robot))
 
     def drawFrictionCone(self):
         cone = FrictionCone(sides=6)

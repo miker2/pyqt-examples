@@ -3,6 +3,7 @@ from PyQt5.QtGui import QMatrix4x4
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QSlider
 
 from urdfpy import URDF
+import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import numpy as np
 
@@ -54,7 +55,33 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
         self.com = _createSphere(radius=lead_radius, color=(0., 0., 1., 0.9))
         self.com.setParentItem(self)
         self.com.setTransform(link_info.inertial.origin)
-        self.inertia = []
+
+        print("=====================")
+        # Add an ellipsoid representing the inertia of the link (at the CoM location)
+        # First, we must compute the principle axes and principle moments of inertia of the
+        # inertia tensor
+        print(link_info.inertial.inertia)
+        I_principal, I_axes = np.linalg.eig(link_info.inertial.inertia)
+        print(I_principal)
+        print(I_axes)
+
+        self.inertia = _createSphere(radius=1, color=(1., 0, 0, 0.6))
+        self.inertia.setParentItem(self)
+        self.inertia.setTransform(link_info.inertial.origin)
+        print(self.inertia.transform())
+        ellipsoid_inertia = math.sqrt(10 / link_info.inertial.mass) * np.sqrt(
+            np.array([-I_principal[0] + I_principal[1] + I_principal[2],
+                       I_principal[0] - I_principal[1] + I_principal[2],
+                       I_principal[0] + I_principal[1] - I_principal[2]])) / 2
+        print(ellipsoid_inertia)
+        self.inertia.scale(*ellipsoid_inertia)
+        print(self.inertia.transform())
+        R = np.eye(4)
+        R[:3,:3] = I_axes.T
+        print(R)
+        #self.inertia.applyTransform(pg.Transform3D(*R.ravel()), False)
+        print(self.inertia.transform())
+        print("--------------------")
 
     def setParentJoint(self, joint):
         #print(f"Type: {joint.joint_type}, axis: {joint.axis}\norigin: {joint.origin}")
@@ -95,6 +122,12 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
 
     def showCoM(self):
         self.com.show()
+
+    def hideInertia(self):
+        self.inertia.hide()
+
+    def showInertia(self):
+        self.inertia.show()
 
 
 class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
@@ -184,6 +217,16 @@ class RobotModel(gl.GLGraphicsItem.GLGraphicsItem):
             link.showCoM()
         self.update()
 
+    def hideInertia(self):
+        for name, link in self.links.items():
+            link.hideInertia()
+        self.update()
+
+    def showInertia(self):
+        for name, link in self.links.items():
+            link.showInertia()
+        self.update()
+
 class RobotCoMProxy:
     def __init__(self, robot):
         self.robot = robot
@@ -193,3 +236,14 @@ class RobotCoMProxy:
 
     def hide(self):
         self.robot.hideCoM()
+
+
+class RobotInertiaProxy:
+    def __init__(self, robot):
+        self.robot = robot
+
+    def show(self):
+        self.robot.showInertia()
+
+    def hide(self):
+        self.robot.hideInertia()
