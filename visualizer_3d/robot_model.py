@@ -14,10 +14,13 @@ import utils
 
 
 __LEAD_DENSITY__=11340  # kg / m^3
+__DEFAULT_GL_OPT__='translucent'
 
 class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
     def __init__(self, link_info):
         gl.GLGraphicsItem.GLGraphicsItem.__init__(self)
+
+        self.setGLOptions(__DEFAULT_GL_OPT__)
 
         print(f"Created link: {link_info.name}")
 
@@ -39,6 +42,7 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
                 mesh_data = gl.MeshData(vertexes=mesh.vertices, faces=mesh.faces)
                 mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color, edgeColor=edge_color, \
                                      glOptions='translucent') #, shader='shaded')
+                mesh.setGLOptions(__DEFAULT_GL_OPT__)
                 mesh.setTransform(visual.origin)
                 mesh.setParentItem(self)
                 self.visuals.append(mesh)
@@ -50,33 +54,26 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
         self.com = utils.createSphere(radius=lead_radius, color=(0., 0., 1., 0.9))
         self.com.setParentItem(self)
         self.com.setTransform(link_info.inertial.origin)
+        self.com.setGLOptions(__DEFAULT_GL_OPT__)
+        self.com.setDepthValue(-20)
 
-        print("=====================")
         # Add an ellipsoid representing the inertia of the link (at the CoM location)
         # First, we must compute the principle axes and principle moments of inertia of the
         # inertia tensor
-        print(link_info.inertial.inertia)
         I_principal, I_axes = np.linalg.eig(link_info.inertial.inertia)
-        print(I_principal)
-        print(I_axes)
 
         self.inertia = utils.createSphere(radius=1, color=(1., 0, 0, 0.6))
         self.inertia.setParentItem(self)
         self.inertia.setTransform(link_info.inertial.origin)
-        print(self.inertia.transform())
         ellipsoid_inertia = math.sqrt(10 / link_info.inertial.mass) * np.sqrt(
             np.array([-I_principal[0] + I_principal[1] + I_principal[2],
                        I_principal[0] - I_principal[1] + I_principal[2],
                        I_principal[0] + I_principal[1] - I_principal[2]])) / 2
-        print(ellipsoid_inertia)
         self.inertia.scale(*ellipsoid_inertia)
-        print(self.inertia.transform())
         R = np.eye(4)
         R[:3,:3] = I_axes.T
-        print(R)
         #self.inertia.applyTransform(pg.Transform3D(*R.ravel()), False)
-        print(self.inertia.transform())
-        print("--------------------")
+        self.inertia.setGLOptions(__DEFAULT_GL_OPT__)
 
         self.axis = utils.createAxis(size=0.2)
         self.axis.setParentItem(self)
