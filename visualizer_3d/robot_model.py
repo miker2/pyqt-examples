@@ -47,6 +47,21 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
                 mesh.setParentItem(self)
                 self.visuals.append(mesh)
 
+        self.collisions = []
+        for collision in link_info.collisions:
+            print(collision.name, collision.origin, collision.geometry)
+            color = [0.0, 0.5, 0.0, 0.8]
+            opt='translucent'
+            edge_color = 0.8 * np.array(color)
+            for mesh in collision.geometry.meshes:
+                mesh_data = gl.MeshData(vertexes=mesh.vertices, faces=mesh.faces)
+                mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color, edgeColor=edge_color, \
+                                     glOptions='translucent') #, shader='shaded')
+                mesh.setGLOptions(__DEFAULT_GL_OPT__)
+                mesh.setTransform(collision.origin)
+                mesh.setParentItem(self)
+                self.collisions.append(mesh)
+
         # Add a sphere representing the mass of the link (at the CoM location)
         # The sphere radius is determined using a representative sphere with the density of lead
         lead_volume = link_info.inertial.mass / __LEAD_DENSITY__
