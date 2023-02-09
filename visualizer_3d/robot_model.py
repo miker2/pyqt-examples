@@ -130,14 +130,22 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
     def hideObj(self, name):
         obj = getattr(self, name)
         if obj:
-            obj.hide()
+            try:
+                obj.hide()
+            except AttributeError:
+                for o in obj:
+                    o.hide()
         else:
             print(f"Object attribute '{name}' not valid!")
 
     def showObj(self, name):
         obj = getattr(self, name)
         if obj:
-            obj.show()
+            try:
+                obj.show()
+            except AttributeError:
+                for o in obj:
+                    o.show()
         else:
             print(f"Object attribute '{name}' not valid!")
 

@@ -57,6 +57,7 @@ class VisualizerWidget(QWidget):
         self.addToObjList("robot com", RobotObjProxy(robot, 'com'))
         self.addToObjList("robot inertia", RobotObjProxy(robot, 'inertia'))
         self.addToObjList("robot axes", RobotObjProxy(robot, 'axis'))
+        self.addToObjList("robot collision", RobotObjProxy(robot, 'collisions'))
 
     def drawFrictionCone(self):
         cone = FrictionCone(sides=6)
