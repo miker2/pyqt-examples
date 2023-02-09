@@ -12,6 +12,8 @@ import os
 
 import utils
 
+import trimesh
+
 
 __LEAD_DENSITY__=11340  # kg / m^3
 __DEFAULT_GL_OPT__='translucent'
@@ -53,6 +55,17 @@ class RobotLink(gl.GLGraphicsItem.GLGraphicsItem):
             color = [0.0, 0.5, 0.0, 0.8]
             opt='translucent'
             edge_color = 0.8 * np.array(color)
+            # hacky workaround for urdfpy bug related to cylinders
+            print(f"box: {visual.geometry.box}, cylinder: {visual.geometry.cylinder}")
+
+            if collision.geometry.cylinder is not None and collision.geometry.cylinder._meshes is None:
+                print("Trying to work around bug!")
+                collision.geometry.cylinder._meshes = []
+                collision.geometry.cylinder._mesh = [trimesh.creation.cylinder(
+                  radius=collision.geometry.cylinder.radius,
+                  height=collision.geometry.cylinder.length
+                )]
+
             for mesh in collision.geometry.meshes:
                 mesh_data = gl.MeshData(vertexes=mesh.vertices, faces=mesh.faces)
                 mesh = gl.GLMeshItem(meshdata=mesh_data, drawEdges=True, color=color, edgeColor=edge_color, \
